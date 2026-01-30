@@ -63,49 +63,148 @@ The application implements a **Strict Layered Architecture**, ensuring that each
 
 - **Homestay**: Attributes: `homeID`, `homeName`, `address`, `roomNumber`, `maximumCapacity`.
 - **Tour**: Attributes: `tourId`, `tourName`, `price`, `homeID`, `departureDate`, `endDate`, `numberTourist`, `isBooked`.
-- **Booking**: Attributes: `bookingID`, `fullName`, ```mermaid
-- classDiagram
-  - direction TB
+- **Booking**: Attributes: `bookingID`, `fullName`, `tourID`, `bookingDate`, `phone`.
 
-  %% ======================= %% ENTITIES %% ======================= class Homestay { -String homeID -String homeName -int roomNumber -String address -int maximumCapacity +getHomeID() String +getMaximumCapacity() int }
+**Controllers**
 
-  class Tour { -String tourId -String tourName -String time -double price -String homeID -LocalDate departureDate -LocalDate endDate -int numberTourist -boolean isBooked +getTotalAmount() double +isExpired() boolean +isUpcoming() boolean +isOverlapWith(Tour) boolean }
+- **MainController**: `run()`, `processMainChoice()`.
+- **TourController**: `addTour()`, `updateTour()`, `listEarlierThanToday()`, `listLaterThanToday()`, `showStatistics()`.
+- **BookingController**: `addBooking()`, `removeBooking()`, `updateBooking()`, `searchBooking()`.
 
-  class Booking { -String bookingID -String fullName -String tourID -LocalDate bookingDate -String phone }
+**Services**
 
-  %% ======================= %% VIEWS %% ======================= class MainView { +displayMenu() +getChoice() int }
+- **TourService**: `addTourWithValidation()`, `updateTourWithValidation()`, `isOverlap()`.
+- **BookingService**: `addBookingWithValidation()`, `removeBooking()`, `searchByCustomerName()`.
+- **HomestayService**: `loadFromFile()`, `findById()`.
 
-  class TourView { +displayList(List~Tour~) +inputTourDetails() Tour +inputUpdateDetails(Tour) Tour +displayStatistics(Object[][]) }
+**Repositories**
 
-  class BookingView { +displayList(List~Booking~) +inputBookingDetails() Booking +inputUpdateDetails(Booking) Booking }
+- **ITourRepository** / **TourRepository**: `save()`, `findById()`, `findAll()`.
+- **IBookingRepository** / **BookingRepository**: `save()`, `findById()`, `findAll()`.
+- **IHomestayRepository** / **HomestayRepository**: `findById()`, `findAll()`.
 
-  %% ======================= %% CONTROLLERS %% ======================= class MainController { +run() -processMainChoice(int) }
+```mermaid
+classDiagram
+    direction TB
 
-  class TourController { +addTour() +updateTour() +listEarlierThanToday() +listLaterThanToday() +showStatistics() }
+    %% ================== CONTROLLER LAYER ==================
+    class MainController {
+        - MainView view
+        + run()
+        - processMainChoice(choice:int)
+    }
 
-  class BookingController { +addBooking() +removeBooking() +updateBooking() +searchBooking() }
+    class TourController {
+        + addTour()
+        + updateTour()
+        + listEarlierThanToday()
+        + listLaterThanToday()
+        + showStatistics()
+    }
 
-  %% ======================= %% SERVICES %% ======================= class TourService { +addTourWithValidation(Tour) +isOverlap(String, LocalDate, LocalDate) +getStatistics() }
+    class BookingController {
+        + addBooking()
+        + removeBooking()
+        + updateBooking()
+        + searchBooking()
+    }
 
-  class BookingService { +addBookingWithValidation(Booking) +removeBookingWithValidation(String) }
+    %% ================== SERVICE LAYER ==================
+    class TourService {
+        + addTourWithValidation(tour)
+        + updateTourWithValidation(tour)
+        + isOverlap(homeID, startDate, endDate)
+        + getExpiredTours()
+        + getUpcomingToursSortedByRevenue()
+    }
 
-  %% ======================= %% REPOSITORIES %% ======================= class TourRepository { +save(Tour) +findAll() List~Tour~ +findById(String) Tour }
+    class BookingService {
+        + addBookingWithValidation(booking)
+        + removeBooking(id)
+        + updateBooking(booking)
+        + searchByCustomerName(keyword)
+    }
 
-  class BookingRepository { +save(Booking) +findAll() List~Booking~ +findById(String) Booking }
+    class HomestayService {
+        + loadFromFile()
+        + findById(id)
+    }
 
-  class HomestayRepository { +findAll() List~Homestay~ +findById(String) Homestay }
+    %% ================== REPOSITORY LAYER ==================
+    class ITourRepository {
+        <<interface>>
+        + save()
+        + findById()
+        + findAll()
+        + delete()
+    }
 
-  %% ======================= %% RELATIONSHIPS %% ======================= MainController --> MainView MainController --> TourController MainController --> BookingController
+    class IBookingRepository {
+        <<interface>>
+        + save()
+        + findById()
+        + findAll()
+        + delete()
+    }
 
-  TourController --> TourService TourController --> TourView
+    class IHomestayRepository {
+        <<interface>>
+        + findById()
+        + findAll()
+    }
 
-  BookingController --> BookingService BookingController --> BookingView
+    class TourRepository
+    class BookingRepository
+    class HomestayRepository
 
-  TourService --> TourRepository TourService --> HomestayRepository BookingService --> BookingRepository
+    %% ================== MODEL ==================
+    class Homestay {
+        - homeID:String
+        - homeName:String
+        - address:String
+        - roomNumber:int
+        - maximumCapacity:int
+    }
 
-  Homestay "1" --> "0..\*" Tour : hosts Tour "1" --> "0..1" Booking : reserved by
+    class Tour {
+        - tourId:String
+        - tourName:String
+        - price:double
+        - homeID:String
+        - departureDate:LocalDate
+        - endDate:LocalDate
+        - numberTourist:int
+        - isBooked:boolean
+    }
 
-````
+    class Booking {
+        - bookingID:String
+        - fullName:String
+        - tourID:String
+        - bookingDate:LocalDate
+        - phone:String
+    }
+
+    %% ================== RELATIONSHIPS ==================
+    MainController --> TourController
+    MainController --> BookingController
+
+    TourController --> TourService
+    BookingController --> BookingService
+    BookingController --> TourService
+
+    TourService --> ITourRepository
+    TourService --> IHomestayRepository
+    BookingService --> IBookingRepository
+    BookingService --> ITourRepository
+
+    ITourRepository <|-- TourRepository
+    IBookingRepository <|-- BookingRepository
+    IHomestayRepository <|-- HomestayRepository
+
+    Homestay "1" --> "0..*" Tour : hosts
+    Tour "1" --> "0..*" Booking : referenced by
+```
 
 ## 6. UML Activity Diagram (Textual Description)
 
@@ -149,7 +248,7 @@ flowchart TD
     Op8 --> Menu
     Op9 --> Menu
     Op10 --> End([End System])
-````
+```
 
 ## 7. Data Flow Diagram (Textual Description)
 
