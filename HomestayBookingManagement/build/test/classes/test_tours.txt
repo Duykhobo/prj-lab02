@@ -1,0 +1,4 @@
+TourID,TourName,Time,Price,HomeID,DepartureDate,EndDate,NumberTourist,IsBooked
+T00001,Da Lat Adventure,3 days 2 nights,1500.0,HS0001,25/12/2025,27/12/2025,4,FALSE
+T00002,Mountain Hiking,2 days 1 night,1000.0,HS0002,26/12/2025,27/12/2025,2,TRUE
+T00003,City Tour,1 day 0 nights,500.0,HS0001,28/12/2025,28/12/2025,6,FALSE
